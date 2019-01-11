@@ -27,6 +27,8 @@ import net.daum.mf.map.api.MapView;
 
 import java.util.Map;
 
+import thirdweek.madcamp.walkitalki.Model.User;
+
 public class Fragment1 extends Fragment {
     public Fragment1() {
         //Required empty public constructor
@@ -91,10 +93,7 @@ public class Fragment1 extends Fragment {
             }
         });
 
-
-
         return v;
+
     }
-
-
 }
