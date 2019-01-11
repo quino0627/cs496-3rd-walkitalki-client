@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         mContext = getApplicationContext();
         getHashKey(mContext);
-
+        Log.d("THIS IS MAINACTIVITY ", "ONCREATE");
         this.requestMe();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(MeV2Response result) {
 
-                redirectMainActivity();
+                //redirectMainActivity();
 
             }
         });
@@ -135,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void redirectMainActivity() {
         startActivity(new Intent(this, MainActivity.class));
+        Log.d("REDIRECTMAINACTIVITY", "ACTIVATED");
         finish();
     }
     protected void redirectLoginActivity() {
