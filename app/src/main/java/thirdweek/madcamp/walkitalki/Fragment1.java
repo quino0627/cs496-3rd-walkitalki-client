@@ -95,8 +95,8 @@ public class Fragment1 extends Fragment {
         });
 
         MyUtil myUtil = new MyUtil(getContext());
-        User user = new User("sdw627", "asdf");
-        Chat chat = new Chat(user, "134", "vvvv");
+        User user = new User("sdw627", 1L);
+        Chat chat = new Chat(user, "vvvv");
         myUtil.popMyMsg(mapView, chat);
 
 

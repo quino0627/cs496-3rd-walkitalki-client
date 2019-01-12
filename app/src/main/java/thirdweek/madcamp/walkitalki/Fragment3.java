@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
@@ -26,11 +25,12 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import thirdweek.madcamp.walkitalki.Model.Message;
+import thirdweek.madcamp.walkitalki.Model.Chat;
+import thirdweek.madcamp.walkitalki.Model.User;
 
 public class Fragment3 extends Fragment {
     public RecyclerView myRecylerView ;
-    public List<Message> MessageList ;
+    public List<Chat> MessageList ;
     public SimpleChatAdapter simpleChatAdapter;
     private Socket socket;
     public EditText messagetxt ;
@@ -81,15 +81,16 @@ public class Fragment3 extends Fragment {
                                             try{
                                                 String name = data.getString("username");
                                                 String message = data.getString("message");
+                                                User user = new User(name, 1L);
 
                                                 Log.e("messagewhat", message);
 
-                                                Message m = new Message(name, message);
+                                                Chat m = new Chat(user, message);
                                                 MessageList.add(m);
 
                             Log.e("meglist", String.valueOf(MessageList));
 
-                            simpleChatAdapter = new SimpleChatAdapter(getContext(), (ArrayList<Message>) MessageList);
+                            simpleChatAdapter = new SimpleChatAdapter(getContext(), (ArrayList<Chat>) MessageList);
                             simpleChatAdapter.notifyDataSetChanged();
 
                             myRecylerView.setAdapter(simpleChatAdapter);
