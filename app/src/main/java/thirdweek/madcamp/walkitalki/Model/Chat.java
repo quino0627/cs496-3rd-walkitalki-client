@@ -5,6 +5,16 @@ public class Chat {
     public String chat_time;
     public String chat_content;
 
+    public Chat(){
+
+    }
+
+    public Chat(User chat_sender, String chat_time, String chat_content) {
+        this.chat_sender = chat_sender;
+        this.chat_content = chat_content;
+        this.chat_time = chat_time;
+    }
+
     public String getChat_content() {
         return chat_content;
     }

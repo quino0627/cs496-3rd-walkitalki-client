@@ -27,6 +27,7 @@ import net.daum.mf.map.api.MapView;
 
 import java.util.Map;
 
+import thirdweek.madcamp.walkitalki.Model.Chat;
 import thirdweek.madcamp.walkitalki.Model.User;
 
 public class Fragment1 extends Fragment {
@@ -92,6 +93,12 @@ public class Fragment1 extends Fragment {
 
             }
         });
+
+        MyUtil myUtil = new MyUtil(getContext());
+        User user = new User("sdw627", "asdf");
+        Chat chat = new Chat(user, "134", "vvvv");
+        myUtil.popMyMsg(mapView, chat);
+
 
         return v;
 
