@@ -51,7 +51,7 @@ public class Fragment3 extends Fragment {
             socket = IO.socket("http://socrip4.kaist.ac.kr:1380/");
             socket.connect();
 
-            socket.emit("message", "CONNECTED!");
+//            socket.emit("message", "CONNECTED!");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

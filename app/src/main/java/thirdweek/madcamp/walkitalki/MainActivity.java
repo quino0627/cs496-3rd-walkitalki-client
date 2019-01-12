@@ -53,8 +53,9 @@ public class MainActivity extends AppCompatActivity {
 
         //I added this if statement to keep the selected fragment when rotating the device
         if (savedInstanceState == null) {
+            Fragment1 newFrag = new Fragment1();
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                    new Fragment1()).commit();
+                    newFrag).commit();
         }
     }
 
@@ -66,7 +67,10 @@ public class MainActivity extends AppCompatActivity {
 
                     switch (item.getItemId()) {
                         case R.id.nav_tab1:
+                            Bundle bundle1 = new Bundle();
+                            bundle1.putString("user_name", myUser.getUser_name());
                             selectedFragment = new Fragment1();
+                            selectedFragment.setArguments(bundle1);
                             break;
                         case R.id.nav_tab2:
                             selectedFragment = new Fragment2();
