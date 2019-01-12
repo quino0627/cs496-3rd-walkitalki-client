@@ -26,9 +26,17 @@ import com.kakao.util.helper.log.Logger;
 
 import java.security.MessageDigest;
 
+import thirdweek.madcamp.walkitalki.Model.User;
+
 public class MainActivity extends AppCompatActivity {
 
     private Context mContext;
+
+    public static String KAKAONAME;
+    public static long KAKAOID;
+
+    public static User myUser;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +72,10 @@ public class MainActivity extends AppCompatActivity {
                             selectedFragment = new Fragment2();
                             break;
                         case R.id.nav_tab3:
+                            Bundle bundle = new Bundle();
+                            bundle.putString("user_name", myUser.getUser_name());
                             selectedFragment = new Fragment3();
+                            selectedFragment.setArguments(bundle);
                             break;
                     }
 
@@ -126,9 +137,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(MeV2Response result) {
+                KAKAOID = result.getId();
+                KAKAONAME = result.getNickname();
 
-                //redirectMainActivity();
+                Log.d("KAKAOID", String.valueOf(KAKAOID));
+                Log.d("KAKAOAME", KAKAONAME);
 
+                myUser = new User(KAKAONAME, KAKAOID);
             }
         });
     }

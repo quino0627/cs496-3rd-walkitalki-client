@@ -51,7 +51,6 @@ public class KakaoSignupActivity extends Activity {
 
             @Override
             public void onSuccess(MeV2Response result) {
-
                 redirectMainActivity();
 
             }
@@ -59,7 +58,8 @@ public class KakaoSignupActivity extends Activity {
     }
 
     private void redirectMainActivity() {
-        startActivity(new Intent(this, MainActivity.class));
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
         finish();
     }
     protected void redirectLoginActivity() {
