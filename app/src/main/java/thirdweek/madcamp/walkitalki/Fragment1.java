@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -50,16 +51,19 @@ import thirdweek.madcamp.walkitalki.Model.User;
 
 public class Fragment1 extends Fragment {
 
-    public List<Chat> MessageList ;
+    public List<Chat> MessageList;
     private Socket socket;
-    public EditText messagetxt2 ;
-    public Button sendBtn ;
+    public EditText messagetxt2;
+    public Button sendBtn;
     public String Name;
 
     public static String KAKAONAME;
     public static long KAKAOID;
 
     public static User myUser;
+
+    private static double longitude;
+    private static double latitude;
 
     public Fragment1() {
         //Required empty public constructor
@@ -95,15 +99,15 @@ public class Fragment1 extends Fragment {
         socket.on("map new message", new Emitter.Listener() {
             @Override
             public void call(final Object... args) {
-                if(getActivity() == null){
-                    return ;
+                if (getActivity() == null) {
+                    return;
                 }
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Log.e("newMSG", "NEW MSG!");
                         JSONObject data = (JSONObject) args[0];
-                        try{
+                        try {
                             String name = data.getString("username");
                             String message = data.getString("message");
                             User user = MainActivity.myUser;
@@ -129,7 +133,6 @@ public class Fragment1 extends Fragment {
         mapViewContainer.addView(mapView);
 
 
-
         // 줌 레벨 변경
         mapView.setZoomLevel(4, true);
 
@@ -145,14 +148,52 @@ public class Fragment1 extends Fragment {
 
         mapView.addPOIItem(marker);
 
-
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
+
+        //LocationListener
+        LocationListener mLocationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(final Location location) {
+                // 중심점 변경
+                longitude = location.getLongitude();
+                latitude = location.getLatitude();
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+
+        //LocationManager
+        LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+        }
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+
 
         FloatingActionButton button_mylocation = v.findViewById(R.id.button_mylocation);
         button_mylocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+//                LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
 
                 if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     // TODO: Consider calling
@@ -164,11 +205,11 @@ public class Fragment1 extends Fragment {
                     // for ActivityCompat#requestPermissions for more details.
                     return;
                 }
-                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-                // 중심점 변경
-                double longitude = location.getLongitude();
-                double latitude = location.getLatitude();
+//                // 중심점 변경
+//                double longitude = location.getLongitude();
+//                double latitude = location.getLatitude();
 
                 mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude), true);
 
@@ -178,7 +219,7 @@ public class Fragment1 extends Fragment {
         final MyUtil myUtil = new MyUtil(getContext());
         User user = new User("sdw627", 1L);
         Chat chat = new Chat(user, "vvvv");
-        myUtil.popMyMsg(mapView, chat);
+        //myUtil.popMyMsg(mapView, chat);
 
 
         //message send action
