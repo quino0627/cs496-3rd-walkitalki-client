@@ -14,6 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -51,6 +52,11 @@ import thirdweek.madcamp.walkitalki.Model.User;
 
 public class Fragment1 extends Fragment {
 
+
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+
+
     public List<Chat> MessageList;
     private Socket socket;
     public EditText messagetxt2;
@@ -86,8 +92,57 @@ public class Fragment1 extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+
+        locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                Log.d("LocationL: ", location.toString());
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            ActivityCompat.requestPermissions(getActivity(), new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return null;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_layout1, container, false);
+
+        final MapView mapView = new MapView(getActivity());
+        ViewGroup mapViewContainer = (ViewGroup) v.findViewById(R.id.map_view);
+        mapViewContainer.addView(mapView);
+
+
+
+
 
         MessageList = new ArrayList<>();
 
@@ -112,6 +167,13 @@ public class Fragment1 extends Fragment {
                             String message = data.getString("message");
                             User user = MainActivity.myUser;
 
+                            final MyUtil myUtil = new MyUtil(getContext());
+                            Log.e("qqqqqqqq", messagetxt2.getText().toString());
+                            User tmpUser = new User(name, 1L);
+                            Chat tmpChat = new Chat(tmpUser, message);
+                            myUtil.popOthersMsg(mapView, tmpChat, data.getDouble("latitude"), data.getDouble("longitude"));
+
+
                             Log.e("messagewhat", message);
 
                             Chat m = new Chat(user, message);
@@ -128,9 +190,7 @@ public class Fragment1 extends Fragment {
         });
 
         //지도
-        final MapView mapView = new MapView(getActivity());
-        ViewGroup mapViewContainer = (ViewGroup) v.findViewById(R.id.map_view);
-        mapViewContainer.addView(mapView);
+
 
 
         // 줌 레벨 변경
@@ -216,7 +276,7 @@ public class Fragment1 extends Fragment {
             }
         });
 
-        final MyUtil myUtil = new MyUtil(getContext());
+
         User user = new User("sdw627", 1L);
         Chat chat = new Chat(user, "vvvv");
         //myUtil.popMyMsg(mapView, chat);
@@ -227,8 +287,9 @@ public class Fragment1 extends Fragment {
             @Override
             public void onClick(View v){
                 if(!messagetxt2.getText().toString().isEmpty()){
-                    socket.emit("map detection", KAKAONAME, messagetxt2.getText().toString(), myUtil.getLocation().getLongitude(), myUtil.getLocation().getLatitude());
+                    socket.emit("map detection", KAKAONAME, messagetxt2.getText().toString(), latitude, longitude);
                     messagetxt2.setText("");
+
                 }
             }
         });
@@ -276,5 +337,17 @@ public class Fragment1 extends Fragment {
                 myUser = new User(KAKAONAME, KAKAOID);
             }
         });
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+            if(ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED){
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            }
+        }
     }
 }

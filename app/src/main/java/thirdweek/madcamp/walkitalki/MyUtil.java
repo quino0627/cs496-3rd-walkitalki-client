@@ -43,8 +43,8 @@ public class MyUtil {
         mapView.setMapCenterPoint(MARKER_POINT, true);
     }
 
-    public void popOthersMsg(MapView mapView, Chat chat, Position position) {
-        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(position.latitude, position.longitude);
+    public void popOthersMsg(MapView mapView, Chat chat, double latitude, double longitude) {
+        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
         MapPOIItem marker = new MapPOIItem();
         Log.e("asdf", "qwerty");
         Log.e(chat.chat_sender.user_name, chat.chat_content);
