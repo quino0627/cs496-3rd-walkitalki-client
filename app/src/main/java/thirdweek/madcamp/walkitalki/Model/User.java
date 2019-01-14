@@ -3,6 +3,7 @@ package thirdweek.madcamp.walkitalki.Model;
 public class User {
     public Long user_id;
     public String user_name;
+    //TODO: 유저 카카오톡 아이디 설정 필요함
 
     public User(){
     }

@@ -26,11 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import thirdweek.madcamp.walkitalki.Model.Chat;
+import thirdweek.madcamp.walkitalki.Model.ChatVer2;
 import thirdweek.madcamp.walkitalki.Model.User;
 
+//TODO: 지워주세요 (나중에)
 public class Fragment3 extends Fragment {
     public RecyclerView myRecylerView ;
-    public List<Chat> MessageList ;
+    public List<ChatVer2> MessageList ;
     public SimpleChatAdapter simpleChatAdapter;
     private Socket socket;
     public EditText messagetxt ;
@@ -85,12 +87,12 @@ public class Fragment3 extends Fragment {
 
                                                 Log.e("messagewhat", message);
 
-                                                Chat m = new Chat(user, message);
+                                                ChatVer2 m = new ChatVer2(user, message);
                                                 MessageList.add(m);
 
                             Log.e("meglist", String.valueOf(MessageList));
 
-                            simpleChatAdapter = new SimpleChatAdapter(getContext(), (ArrayList<Chat>) MessageList);
+                            simpleChatAdapter = new SimpleChatAdapter(getContext(), (ArrayList<ChatVer2>) MessageList);
                             simpleChatAdapter.notifyDataSetChanged();
 
                             myRecylerView.setAdapter(simpleChatAdapter);

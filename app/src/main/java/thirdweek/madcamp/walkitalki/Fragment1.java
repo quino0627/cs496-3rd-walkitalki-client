@@ -1,11 +1,8 @@
 package thirdweek.madcamp.walkitalki;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -17,25 +14,19 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
 import com.kakao.network.ErrorResult;
-import com.kakao.usermgmt.ApiErrorCode;
 import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.MeV2ResponseCallback;
 import com.kakao.usermgmt.response.MeV2Response;
-import com.kakao.util.helper.log.Logger;
 
-import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
 
@@ -45,19 +36,22 @@ import org.json.JSONObject;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import thirdweek.madcamp.walkitalki.Model.Chat;
+import thirdweek.madcamp.walkitalki.Model.ChatVer2;
 import thirdweek.madcamp.walkitalki.Model.User;
+import thirdweek.madcamp.walkitalki.Retrofit.APIUtils;
+import thirdweek.madcamp.walkitalki.Retrofit.IMyService;
 
 public class Fragment1 extends Fragment {
-
 
     private LocationManager locationManager;
     private LocationListener locationListener;
 
-
-    public List<Chat> MessageList;
+    public List<ChatVer2> MessageList;
     private Socket socket;
     public EditText messagetxt2;
     public Button sendBtn;
@@ -82,8 +76,6 @@ public class Fragment1 extends Fragment {
             socket = IO.socket("http://socrip4.kaist.ac.kr:1380/");
             socket.connect();
             this.requestMe();
-
-//            socket.emit("message", "CONNECTED!");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -92,11 +84,12 @@ public class Fragment1 extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-
+        //현재 위치 정보 받는 기능
         locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                //위치 바뀔때마다 latitude, longitude  바뀜
                 Log.d("LocationL: ", location.toString());
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
@@ -118,39 +111,76 @@ public class Fragment1 extends Fragment {
             }
         };
 
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
 
+
+        //위치 정보 권한 체크 (없으면 권한 받기)
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             return null;
         }
+
+
+
+        //위치 업데이트 물어보기 (0초마다, 0만큼 움직였을때)
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
 
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_layout1, container, false);
 
+
+        //지도 띄우기
         final MapView mapView = new MapView(getActivity());
         ViewGroup mapViewContainer = (ViewGroup) v.findViewById(R.id.map_view);
         mapViewContainer.addView(mapView);
 
 
+        // TODO: 이거 체크 해주세요
+        MessageList = new ArrayList<ChatVer2>();
 
 
-
-        MessageList = new ArrayList<>();
-
+        //Fragment에 있는 메시지 기능 item들
         messagetxt2 = (EditText) v.findViewById(R.id.message2);
         sendBtn = (Button) v.findViewById(R.id.send2);
 
 
-        //소켓에서 메시지 로드해서 맵에 찍기
+
+        //이미 있는 쳇들 찍기
+        IMyService iMyService;
+        iMyService = APIUtils.getUserService();
+        Call call = iMyService.getChats();
+        call.enqueue(new Callback<List<Chat>>() {
+            @Override
+            public void onResponse(Call<List<Chat>> call, Response<List<Chat>> response) {
+                if(response.body() != null) {
+                   List<Chat> tempList =  response.body();
+                    final MyUtil myUtil = new MyUtil(getContext());
+                    for (int i = 0 ; i<tempList.size(); i++){
+
+                        Chat tmpChat = new Chat();
+                        tmpChat.username = tempList.get(i).username;
+                        tmpChat.content = tempList.get(i).content;
+                        tmpChat.latitude = tempList.get(i).latitude;
+                        tmpChat.longitude = tempList.get(i).longitude;
+                        tmpChat.userID = tempList.get(i).userID;
+                        Log.e(" "+i+"번째 유저 정보는 ", tmpChat.username + tmpChat.content + tmpChat.latitude +  tmpChat.longitude );
+
+                        User tmpUser = new User(tmpChat.username, tmpChat.userID);
+                        ChatVer2 tmpChat2 = new ChatVer2(tmpUser, tmpChat.content);
+
+                        //TODO: 커스텀 메시지로 바꾸기
+                        myUtil.popOthersMsg(mapView,tmpChat2, tmpChat.latitude, tmpChat.longitude );
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<List<Chat>> call, Throwable t) {
+            }
+        });
+
+
+
+        //실시간 메시지 맵에 찍기
         socket.on("map new message", new Emitter.Listener() {
             @Override
             public void call(final Object... args) {
@@ -163,6 +193,7 @@ public class Fragment1 extends Fragment {
                         Log.e("newMSG", "NEW MSG!");
                         JSONObject data = (JSONObject) args[0];
                         try {
+                            //TODO: 데이터 베이스에서 카카오톡 아이디 까지 받기
                             String name = data.getString("username");
                             String message = data.getString("message");
                             User user = MainActivity.myUser;
@@ -170,17 +201,13 @@ public class Fragment1 extends Fragment {
                             final MyUtil myUtil = new MyUtil(getContext());
                             Log.e("qqqqqqqq", messagetxt2.getText().toString());
                             User tmpUser = new User(name, 1L);
-                            Chat tmpChat = new Chat(tmpUser, message);
+                            ChatVer2 tmpChat = new ChatVer2(tmpUser, message);
                             myUtil.popOthersMsg(mapView, tmpChat, data.getDouble("latitude"), data.getDouble("longitude"));
 
-
                             Log.e("messagewhat", message);
-
-                            Chat m = new Chat(user, message);
+                            ChatVer2 m = new ChatVer2(user, message);
                             MessageList.add(m);
-
                             Log.e("meglist", String.valueOf(MessageList));
-
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -189,112 +216,75 @@ public class Fragment1 extends Fragment {
             }
         });
 
-        //지도
 
 
-
-        // 줌 레벨 변경
+        // 줌 레벨 변경, 모드 변경
         mapView.setZoomLevel(4, true);
-
-
-        //마커 찍기
-        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(37.54892296550104, 126.99089033876304);
-        MapPOIItem marker = new MapPOIItem();
-        marker.setItemName("Default Marker");
-        marker.setTag(0);
-        marker.setMapPoint(MARKER_POINT);
-        marker.setMarkerType(MapPOIItem.MarkerType.BluePin); // 기본으로 제공하는 BluePin 마커 모양.
-        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin); // 마커를 클릭했을때, 기본으로 제공하는 RedPin 마커 모양.
-
-        mapView.addPOIItem(marker);
-
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
 
-        //LocationListener
-        LocationListener mLocationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(final Location location) {
-                // 중심점 변경
-                longitude = location.getLongitude();
-                latitude = location.getLatitude();
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-        };
-
-        //LocationManager
-        LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-        }
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
 
 
+//        //LocationListener
+//        LocationListener mLocationListener = new LocationListener() {
+//            @Override
+//            public void onLocationChanged(final Location location) {
+//                // 중심점 변경
+//                longitude = location.getLongitude();
+//                latitude = location.getLatitude();
+//            }
+//
+//            @Override
+//            public void onStatusChanged(String provider, int status, Bundle extras) {
+//
+//            }
+//
+//            @Override
+//            public void onProviderEnabled(String provider) {
+//
+//            }
+//
+//            @Override
+//            public void onProviderDisabled(String provider) {
+//
+//            }
+//        };
+//
+//        //LocationManager
+//        LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+//        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//        }
+//        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+
+
+        //중심점 내 위치로 변경
         FloatingActionButton button_mylocation = v.findViewById(R.id.button_mylocation);
         button_mylocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-
                 if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
                     return;
                 }
-//                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-//                // 중심점 변경
-//                double longitude = location.getLongitude();
-//                double latitude = location.getLatitude();
-
                 mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude), true);
-
             }
         });
 
 
-        User user = new User("sdw627", 1L);
-        Chat chat = new Chat(user, "vvvv");
-        //myUtil.popMyMsg(mapView, chat);
 
 
-        //message send action
+        //메시지 서버에 보내기 (실시간으로 다시 디바이스로 전송 + 데이터 베이스에 저장됨)
         sendBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 if(!messagetxt2.getText().toString().isEmpty()){
-                    socket.emit("map detection", KAKAONAME, messagetxt2.getText().toString(), latitude, longitude);
+                    socket.emit("map detection", KAKAONAME, KAKAOID, messagetxt2.getText().toString(), latitude, longitude);
                     messagetxt2.setText("");
-
                 }
             }
         });
         return v;
     }
+
+
 
     @Override
     public void onResume() {
@@ -302,12 +292,12 @@ public class Fragment1 extends Fragment {
         try {
             socket = IO.socket("http://socrip4.kaist.ac.kr:1380/");
             socket.connect();
-
-            socket.emit("message", "CONNECTED!");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
+
+
 
     @Override
     public void onDestroy() {
@@ -315,7 +305,9 @@ public class Fragment1 extends Fragment {
         socket.disconnect();
     }
 
-    protected void requestMe() { //유저의 정보를 받아오는 함수
+
+    //유저의 정보를 받아오는 함수
+    protected void requestMe() {
 
         UserManagement.getInstance().me(new MeV2ResponseCallback() {
             @Override
@@ -331,6 +323,8 @@ public class Fragment1 extends Fragment {
                 KAKAOID = result.getId();
                 KAKAONAME = result.getNickname();
 
+                //TODO: 카카오톡 프로필 사진 받아오기
+
                 Log.d("KAKAOID", String.valueOf(KAKAOID));
                 Log.d("KAKAOAME", KAKAONAME);
 
@@ -340,6 +334,7 @@ public class Fragment1 extends Fragment {
     }
 
 
+    //Permission 확인
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -350,4 +345,5 @@ public class Fragment1 extends Fragment {
             }
         }
     }
+
 }
