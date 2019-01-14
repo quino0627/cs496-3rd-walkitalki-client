@@ -313,7 +313,7 @@ public class Fragment1 extends Fragment {
 
     public void popaBalloon(MapView mapView, Chat chat, double latitude, double longitude){
         mCustomMarker = new MapPOIItem();
-        String name = chat.content;
+        String name = chat.username +": "+ chat.content;
         mCustomMarker.setItemName(name);
         mCustomMarker.setTag(1);
         mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude));
@@ -323,6 +323,8 @@ public class Fragment1 extends Fragment {
         mCustomMarker.setCustomImageResourceId(R.drawable.kakaotalk_icon);
         mCustomMarker.setCustomImageAutoscale(false);
         mCustomMarker.setCustomImageAnchor(0.5f,1.0f);
+        mCustomMarker.setShowDisclosureButtonOnCalloutBalloon(false);
+        mCustomMarker.setShowAnimationType(MapPOIItem.ShowAnimationType.SpringFromGround);
 
         mapView.addPOIItem(mCustomMarker);
         mapView.selectPOIItem(mCustomMarker,true);
