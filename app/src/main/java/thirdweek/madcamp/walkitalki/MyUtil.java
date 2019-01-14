@@ -16,6 +16,7 @@ import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
 
 import thirdweek.madcamp.walkitalki.Model.Chat;
+import thirdweek.madcamp.walkitalki.Model.ChatVer2;
 import thirdweek.madcamp.walkitalki.Model.Position;
 
 public class MyUtil {
@@ -26,7 +27,7 @@ public class MyUtil {
         this.mContext = mContext;
     }
 
-    public void popMyMsg(MapView mapView, Chat chat) {
+    public void popMyMsg(MapView mapView, ChatVer2 chat) {
         Location msgLocation = getLocation();
         MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(msgLocation.getLatitude(), msgLocation.getLongitude());
         MapPOIItem marker = new MapPOIItem();
@@ -43,7 +44,7 @@ public class MyUtil {
         mapView.setMapCenterPoint(MARKER_POINT, true);
     }
 
-    public void popOthersMsg(MapView mapView, Chat chat, double latitude, double longitude) {
+    public void popOthersMsg(MapView mapView, ChatVer2 chat, double latitude, double longitude) {
         MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
         MapPOIItem marker = new MapPOIItem();
         Log.e("asdf", "qwerty");
@@ -58,6 +59,8 @@ public class MyUtil {
         //move to pinned point
         mapView.setMapCenterPoint(MARKER_POINT, true);
     }
+
+    //TODO: POPCUSTOMMSG 부탁합니다
 
     public Location getLocation() {
         LocationManager lm = (LocationManager) mContext.getSystemService(mContext.LOCATION_SERVICE);

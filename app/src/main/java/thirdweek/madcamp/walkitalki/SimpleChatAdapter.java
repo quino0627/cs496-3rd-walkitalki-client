@@ -11,10 +11,12 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import thirdweek.madcamp.walkitalki.Model.Chat;
+import thirdweek.madcamp.walkitalki.Model.ChatVer2;
 
 public class SimpleChatAdapter extends RecyclerView.Adapter<SimpleChatAdapter.MyViewHolder> {
 
-    private ArrayList<Chat> chatList = new ArrayList<Chat>();
+    //TODO: CHATVER2 바꿔주세요
+    private ArrayList<ChatVer2> chatList = new ArrayList<ChatVer2>();
     private Context mContext;
 
     View itemView;
@@ -31,7 +33,7 @@ public class SimpleChatAdapter extends RecyclerView.Adapter<SimpleChatAdapter.My
         }
     }
 
-    public SimpleChatAdapter(Context c, ArrayList<Chat> chatList) {
+    public SimpleChatAdapter(Context c, ArrayList<ChatVer2> chatList) {
         mContext = c;
         this.chatList = chatList;
     }
@@ -45,7 +47,7 @@ public class SimpleChatAdapter extends RecyclerView.Adapter<SimpleChatAdapter.My
 
     @Override
     public void onBindViewHolder(final MyViewHolder myViewHolder, final int i) {
-        final Chat m = chatList.get(i);
+        final ChatVer2 m = chatList.get(i);
         myViewHolder.username.setText(m.getChat_sender().user_name);
         myViewHolder.chatItem.setText(m.getChat_content());
         myViewHolder.chatItem.setVisibility(View.VISIBLE);
