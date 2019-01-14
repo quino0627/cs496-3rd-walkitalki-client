@@ -9,6 +9,10 @@ public class Chat {
     @Expose
     public String username;
 
+    @SerializedName("userID")
+    @Expose
+    public Long userID;
+
     @SerializedName("content")
     @Expose
     public String content;
@@ -21,28 +25,28 @@ public class Chat {
     @Expose
     public double longitude;
 
+    //서버에서 자동으로 시간 찍어줘서 client 쪽에서는 필요 없음
     @SerializedName("timestamp")
     @Expose
     public String timestamp;
 
-    @SerializedName("userID")
-    @Expose
-    public Long userID;
+
 
     public Chat(){
     }
 
-    public Chat(String chat_sender,  String chat_content, double latitude, double longitude, String timestamp) {
+    public Chat(String chat_sender, Long chat_senderID,  String chat_content, double latitude, double longitude) {
         this.username = chat_sender;
+        this.userID = chat_senderID;
         this.content = chat_content;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.timestamp = timestamp;
     }
 
     public String getContent() {
         return content;
     }
+
     public Long getUserID(){
         return userID;
     }
@@ -59,9 +63,6 @@ public class Chat {
         return longitude;
     }
 
-    public String getTimestamp() {
-        return timestamp;
-    }
 
     public void setChat_sender(String chat_sender){
         this.username = chat_sender;
@@ -83,7 +84,4 @@ public class Chat {
         this.longitude = longitude;
     }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
 }

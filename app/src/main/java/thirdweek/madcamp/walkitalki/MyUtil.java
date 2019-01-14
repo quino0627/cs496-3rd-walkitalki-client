@@ -61,6 +61,9 @@ public class MyUtil {
     }
 
     //TODO: POPCUSTOMMSG 부탁합니다
+//    public void popaBalloon(MapView mapView, Chat chat, double latitude, double longitude){
+//
+//    }
 
     public Location getLocation() {
         LocationManager lm = (LocationManager) mContext.getSystemService(mContext.LOCATION_SERVICE);

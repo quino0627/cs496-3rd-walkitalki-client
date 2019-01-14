@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "594463784139",
+    "firebase_url": "https://walkitalki-cc828.firebaseio.com",
+    "project_id": "walkitalki-cc828",
+    "storage_bucket": "walkitalki-cc828.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:594463784139:android:e78643985a22d8b8",
+        "android_client_info": {
+          "package_name": "thirdweek.madcamp.walkitalki"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "594463784139-fqcd8g8nu6bup8482n6h5vbi7gslcpg4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "thirdweek.madcamp.walkitalki",
+            "certificate_hash": "46109752ddf24dc037abf38ab461bbee8c42fe63"
+          }
+        },
+        {
+          "client_id": "594463784139-88rogof2g6f1j9n53dvruaff9s7spmkn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPdAUjuKjkXxziE2gxqFiriaaU0hj-AyI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "594463784139-88rogof2g6f1j9n53dvruaff9s7spmkn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
