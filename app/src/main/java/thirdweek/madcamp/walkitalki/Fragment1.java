@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
@@ -27,6 +29,8 @@ import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.MeV2ResponseCallback;
 import com.kakao.usermgmt.response.MeV2Response;
 
+import net.daum.mf.map.api.CalloutBalloonAdapter;
+import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
 
@@ -51,7 +55,6 @@ public class Fragment1 extends Fragment {
     private LocationManager locationManager;
     private LocationListener locationListener;
 
-    public List<ChatVer2> MessageList;
     private Socket socket;
     public EditText messagetxt2;
     public Button sendBtn;
@@ -64,6 +67,8 @@ public class Fragment1 extends Fragment {
 
     private static double longitude;
     private static double latitude;
+    private MapView mMapView;
+    private MapPOIItem mCustomMarker;
 
     public Fragment1() {
         //Required empty public constructor
@@ -135,9 +140,6 @@ public class Fragment1 extends Fragment {
         mapViewContainer.addView(mapView);
 
 
-        // TODO: 이거 체크 해주세요
-        MessageList = new ArrayList<ChatVer2>();
-
 
         //Fragment에 있는 메시지 기능 item들
         messagetxt2 = (EditText) v.findViewById(R.id.message2);
@@ -165,11 +167,10 @@ public class Fragment1 extends Fragment {
                         tmpChat.userID = tempList.get(i).userID;
                         Log.e(" "+i+"번째 유저 정보는 ", tmpChat.username + tmpChat.content + tmpChat.latitude +  tmpChat.longitude );
 
-                        User tmpUser = new User(tmpChat.username, tmpChat.userID);
-                        ChatVer2 tmpChat2 = new ChatVer2(tmpUser, tmpChat.content);
+                        final Chat tmpChatMSG = new Chat(tmpChat.username, tmpChat.userID, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
 
-                        //TODO: 커스텀 메시지로 바꾸기
-                        myUtil.popOthersMsg(mapView,tmpChat2, tmpChat.latitude, tmpChat.longitude );
+                        mMapView.setCalloutBalloonAdapter(new CustomCalloutBalloonAdapter());
+                        popaBalloon(mMapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude );
                     }
                 }
             }
@@ -177,7 +178,6 @@ public class Fragment1 extends Fragment {
             public void onFailure(Call<List<Chat>> call, Throwable t) {
             }
         });
-
 
 
         //실시간 메시지 맵에 찍기
@@ -193,21 +193,18 @@ public class Fragment1 extends Fragment {
                         Log.e("newMSG", "NEW MSG!");
                         JSONObject data = (JSONObject) args[0];
                         try {
-                            //TODO: 데이터 베이스에서 카카오톡 아이디 까지 받기
+                            //실시간 데이터 정리
                             String name = data.getString("username");
+                            Long userID = data.getLong("userID");
                             String message = data.getString("message");
-                            User user = MainActivity.myUser;
+                            double msgLatitude = data.getDouble("latitude");
+                            double msgLongitude = data.getDouble("longitude");
 
                             final MyUtil myUtil = new MyUtil(getContext());
-                            Log.e("qqqqqqqq", messagetxt2.getText().toString());
-                            User tmpUser = new User(name, 1L);
-                            ChatVer2 tmpChat = new ChatVer2(tmpUser, message);
-                            myUtil.popOthersMsg(mapView, tmpChat, data.getDouble("latitude"), data.getDouble("longitude"));
+                            Chat tmpChat = new Chat(name, userID, message, msgLatitude, msgLongitude);
 
-                            Log.e("messagewhat", message);
-                            ChatVer2 m = new ChatVer2(user, message);
-                            MessageList.add(m);
-                            Log.e("meglist", String.valueOf(MessageList));
+                            popaBalloon(mapView, tmpChat, msgLatitude, msgLongitude);
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -222,38 +219,6 @@ public class Fragment1 extends Fragment {
         mapView.setZoomLevel(4, true);
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
 
-
-
-//        //LocationListener
-//        LocationListener mLocationListener = new LocationListener() {
-//            @Override
-//            public void onLocationChanged(final Location location) {
-//                // 중심점 변경
-//                longitude = location.getLongitude();
-//                latitude = location.getLatitude();
-//            }
-//
-//            @Override
-//            public void onStatusChanged(String provider, int status, Bundle extras) {
-//
-//            }
-//
-//            @Override
-//            public void onProviderEnabled(String provider) {
-//
-//            }
-//
-//            @Override
-//            public void onProviderDisabled(String provider) {
-//
-//            }
-//        };
-//
-//        //LocationManager
-//        LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-//        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//        }
-//        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
 
 
         //중심점 내 위치로 변경
@@ -283,7 +248,6 @@ public class Fragment1 extends Fragment {
         });
         return v;
     }
-
 
 
     @Override
@@ -344,6 +308,26 @@ public class Fragment1 extends Fragment {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
             }
         }
+    }
+
+
+    public void popaBalloon(MapView mapView, Chat chat, double latitude, double longitude){
+        mCustomMarker = new MapPOIItem();
+        String name = chat.content;
+        mCustomMarker.setItemName(name);
+        mCustomMarker.setTag(1);
+        mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude));
+
+        mCustomMarker.setMarkerType(MapPOIItem.MarkerType.CustomImage);
+
+        mCustomMarker.setCustomImageResourceId(R.drawable.kakaotalk_icon);
+        mCustomMarker.setCustomImageAutoscale(false);
+        mCustomMarker.setCustomImageAnchor(0.5f,1.0f);
+
+        mapView.addPOIItem(mCustomMarker);
+        mapView.selectPOIItem(mCustomMarker,true);
+        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude),false);
+
     }
 
 }
