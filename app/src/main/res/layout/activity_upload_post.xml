@@ -38,9 +38,10 @@ tools:context=".UploadPostActivity">
     android:layout_width="match_parent"
     android:background="@drawable/line_top_bottom"
     android:layout_centerHorizontal="true"
-    android:layout_above="@+id/altLayout"
+    android:layout_above="@+id/textLayout"
     android:layout_below="@+id/my_toolbar"
     android:layout_height="match_parent"
+    android:layout_marginBottom="20dp"
     >
 
 
@@ -49,43 +50,12 @@ tools:context=".UploadPostActivity">
         android:layout_marginBottom="50dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/camera"
+        android:src="@drawable/wk"
         android:id="@+id/uploading_image"
         />
 
 </LinearLayout>
-<LinearLayout
-    android:layout_above="@+id/textLayout"
-    android:id="@+id/altLayout"
-    android:layout_marginTop="20dp"
-    android:layout_marginBottom="10dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:visibility="visible"
-    android:layout_marginLeft="20dp"
-    android:layout_marginRight="20dp"
-    tools:layout_editor_absoluteX="0dp">
 
-
-
-
-
-    <EditText
-        android:id="@+id/editTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:hint="Title"
-        android:textAppearance="?android:textAppearanceMedium"
-        android:clickable="false"
-        android:cursorVisible="true"
-        android:backgroundTint="@android:color/darker_gray"
-        android:layout_weight="0.5"/>
-
-
-
-</LinearLayout>
 
 <LinearLayout
     android:layout_above="@+id/buttonLayout"
@@ -93,20 +63,36 @@ tools:context=".UploadPostActivity">
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:inputType="textPersonName"
-    android:orientation="horizontal"
+    android:orientation="vertical"
+    android:weightSum="2"
+    android:paddingBottom="15dp"
+
     >
 
     <EditText
-        android:id="@+id/editContent"
-        android:layout_width="0dp"
+        android:id="@+id/editTitle"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
-        android:hint="Write Contents"
+        android:hint="Title"
+        android:paddingBottom="20dp"
         android:textAppearance="?android:textAppearanceMedium"
         android:clickable="false"
         android:cursorVisible="true"
         android:backgroundTint="@android:color/darker_gray"
-        android:layout_weight="0.5"/>
+        android:layout_weight="1"/>
+    <EditText
+        android:id="@+id/editContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:hint="Write Contents"
+        android:paddingBottom="20dp"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:clickable="false"
+        android:cursorVisible="true"
+        android:backgroundTint="@android:color/darker_gray"
+        android:layout_weight="1"/>
 
 
 </LinearLayout>
@@ -117,8 +103,8 @@ tools:context=".UploadPostActivity">
     android:layout_height="wrap_content"
     android:layout_alignParentBottom="true"
     android:orientation="horizontal">
-    <Button android:id="@+id/camera" android:layout_weight = "0.4" android:layout_marginRight="5dp" android:textColor="@android:color/white" android:textSize="16sp" android:layout_width="0dp" android:layout_height="wrap_content"  android:background="@drawable/rounded_corner_submit" android:text="PHOTO"/>
-    <Button android:id="@+id/upload_btn" android:textColor="@android:color/white" android:textSize="16sp" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@drawable/rounded_corner_submit" android:text="UPLOAD"/>
+    <Button android:id="@+id/camera"  android:layout_marginBottom="5dp" android:layout_weight = "0.4" android:layout_marginRight="5dp" android:textColor="@android:color/black" android:textSize="16sp" android:layout_width="0dp" android:layout_height="wrap_content"  android:background="@drawable/rounded_corner_submit" android:text="PHOTO"/>
+    <Button android:id="@+id/upload_btn" android:textColor="@android:color/black" android:textSize="16sp" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:background="@drawable/rounded_corner_submit" android:text="UPLOAD"/>
 </LinearLayout>
 
 <ProgressBar

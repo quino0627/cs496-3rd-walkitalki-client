@@ -4,16 +4,16 @@
     <item
         android:id="@+id/nav_tab1"
         android:icon="@drawable/ic_action_tab1"
-        android:title="Home" />
+        android:title="MapTalki" />
 
     <item
         android:id="@+id/nav_tab2"
         android:icon="@drawable/ic_action_tab2"
-        android:title="Favorites" />
+        android:title="TimeTalki" />
 
     <item
         android:id="@+id/nav_tab3"
         android:icon="@drawable/ic_action_tab3"
-        android:title="Search" />
+        android:title="ChatTalki" />
 
 </menu>

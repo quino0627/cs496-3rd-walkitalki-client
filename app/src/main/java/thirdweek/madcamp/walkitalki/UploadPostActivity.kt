@@ -187,7 +187,7 @@ class UploadPostActivity : AppCompatActivity() {
                 image1 = findViewById(R.id.uploading_image)
                 image1.setImageBitmap(image)
                 val baos = ByteArrayOutputStream()
-                image.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+                image.compress(Bitmap.CompressFormat.PNG, 100, baos)
                 val imageBytes = baos.toByteArray()
                 imageString = Base64.encodeToString(imageBytes, Base64.DEFAULT)
                 hasPhoto = true
