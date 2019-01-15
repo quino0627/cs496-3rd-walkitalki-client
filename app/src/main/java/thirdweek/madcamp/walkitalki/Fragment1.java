@@ -2,6 +2,7 @@ package thirdweek.madcamp.walkitalki;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -46,6 +47,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import thirdweek.madcamp.walkitalki.Model.Chat;
 import thirdweek.madcamp.walkitalki.Model.ChatVer2;
+import thirdweek.madcamp.walkitalki.Model.Post;
 import thirdweek.madcamp.walkitalki.Model.User;
 import thirdweek.madcamp.walkitalki.Retrofit.APIUtils;
 import thirdweek.madcamp.walkitalki.Retrofit.IMyService;
@@ -58,6 +60,7 @@ public class Fragment1 extends Fragment {
     private Socket socket;
     public EditText messagetxt2;
     public Button sendBtn;
+    public Button postBtn;
     public String Name;
 
     public static String KAKAONAME;
@@ -180,6 +183,38 @@ public class Fragment1 extends Fragment {
         });
 
 
+        Call call2 = iMyService.getPosts();
+        call2.enqueue(new Callback<List<Post>>() {
+            @Override
+            public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
+                if(response.body() != null) {
+                    List<Post> tempList =  response.body();
+                    final MyUtil myUtil = new MyUtil(getContext());
+                    for (int i = 0 ; i<tempList.size(); i++){
+
+                        Post tmpChat = new Post();
+                        tmpChat.title = tempList.get(i).title;
+                        tmpChat.username = tempList.get(i).username;
+                        tmpChat.content = tempList.get(i).content;
+                        tmpChat.latitude = tempList.get(i).latitude;
+                        tmpChat.longitude = tempList.get(i).longitude;
+                        tmpChat.userID = tempList.get(i).userID;
+                        Log.e(" "+i+"번째 유저 정보는 ", tmpChat.username + tmpChat.content + tmpChat.latitude +  tmpChat.longitude );
+
+                        final Post tmpChatMSG = new Post(tmpChat.username, tmpChat.userID,tmpChat.title, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
+//                        mMapView.setCalloutBalloonAdapter(new CustomCalloutBalloonAdapter());
+                        popOthersPost(mMapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call call, Throwable t) {
+
+            }
+        });
+
+
         //실시간 메시지 맵에 찍기
         socket.on("map new message", new Emitter.Listener() {
             @Override
@@ -236,6 +271,8 @@ public class Fragment1 extends Fragment {
 
 
 
+
+
         //메시지 서버에 보내기 (실시간으로 다시 디바이스로 전송 + 데이터 베이스에 저장됨)
         sendBtn.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -246,6 +283,18 @@ public class Fragment1 extends Fragment {
                 }
             }
         });
+
+        postBtn = v.findViewById(R.id.post_button);
+        postBtn.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), UploadPostActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
         return v;
     }
 
@@ -328,6 +377,22 @@ public class Fragment1 extends Fragment {
         mapView.selectPOIItem(mCustomMarker,true);
         mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude),false);
 
+
+    }
+
+    public void popOthersPost(MapView mapView, Post post, double latitude, double longitude) {
+        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
+        MapPOIItem marker = new MapPOIItem();
+        Log.e("asdf", "qwerty");
+        marker.setItemName(post.title + " : " + post.content);
+        marker.setTag(0);
+        marker.setMapPoint(MARKER_POINT);
+        marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+        mapView.addPOIItem(marker);
+
+        //move to pinned point
+        mapView.setMapCenterPoint(MARKER_POINT, true);
     }
 
 }

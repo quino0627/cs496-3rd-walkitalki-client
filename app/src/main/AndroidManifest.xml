@@ -3,7 +3,7 @@
     package="thirdweek.madcamp.walkitalki">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:name=".GlobalApplication"
@@ -26,7 +26,8 @@
             android:value="6fb87488989a0b51408df231309f8020" />
 
         <activity android:name=".LoginActivity" />
-        <activity android:name=".KakaoSignupActivity"></activity>
+        <activity android:name=".KakaoSignupActivity" />
+        <activity android:name=".UploadPostActivity"></activity>
     </application>
 
 </manifest>

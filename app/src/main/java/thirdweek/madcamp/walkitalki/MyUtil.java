@@ -18,6 +18,7 @@ import net.daum.mf.map.api.MapView;
 import thirdweek.madcamp.walkitalki.Model.Chat;
 import thirdweek.madcamp.walkitalki.Model.ChatVer2;
 import thirdweek.madcamp.walkitalki.Model.Position;
+import thirdweek.madcamp.walkitalki.Model.Post;
 
 public class MyUtil {
 
@@ -50,6 +51,23 @@ public class MyUtil {
         Log.e("asdf", "qwerty");
         Log.e(chat.chat_sender.user_name, chat.chat_content);
         marker.setItemName(chat.chat_sender.user_name + " : " + chat.chat_content);
+        marker.setTag(0);
+        marker.setMapPoint(MARKER_POINT);
+        marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+        mapView.addPOIItem(marker);
+
+        //move to pinned point
+        mapView.setMapCenterPoint(MARKER_POINT, true);
+    }
+
+
+    public void popOthersPost(MapView mapView, Post post, double latitude, double longitude) {
+        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
+        MapPOIItem marker = new MapPOIItem();
+        Log.e("asdf", "qwerty");
+        Log.e(post.title, post.content);
+        marker.setItemName(post.title + " : " + post.content);
         marker.setTag(0);
         marker.setMapPoint(MARKER_POINT);
         marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
