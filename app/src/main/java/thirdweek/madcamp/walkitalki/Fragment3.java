@@ -17,6 +17,10 @@ import android.widget.EditText;
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
+import com.kakao.network.ErrorResult;
+import com.kakao.usermgmt.UserManagement;
+import com.kakao.usermgmt.callback.MeV2ResponseCallback;
+import com.kakao.usermgmt.response.MeV2Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +44,8 @@ public class Fragment3 extends Fragment {
     public String Name;
     public String ID ;
 
+    public static String Kaka_name;
+
     View mview;
 
     public Fragment3() {
@@ -61,6 +67,8 @@ public class Fragment3 extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+        requestMe();
+
         MessageList = new ArrayList<>();
 
         mview = inflater.inflate(R.layout.fragment_layout3, container, false);
@@ -146,5 +154,24 @@ public class Fragment3 extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         socket.disconnect();
+    }
+
+    //유저의 정보를 받아오는 함수
+    protected void requestMe() {
+
+        UserManagement.getInstance().me(new MeV2ResponseCallback() {
+            @Override
+            public void onFailure(ErrorResult errorResult) {
+            }
+
+            @Override
+            public void onSessionClosed(ErrorResult errorResult) {
+            }
+
+            @Override
+            public void onSuccess(MeV2Response result) {
+                Kaka_name = result.getNickname();
+            }
+        });
     }
 }
