@@ -1,17 +1,23 @@
 package thirdweek.madcamp.walkitalki;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,10 +27,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
+import com.google.firebase.messaging.RemoteMessage;
 import com.kakao.network.ErrorResult;
 import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.MeV2ResponseCallback;
@@ -41,6 +49,8 @@ import org.json.JSONObject;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -51,6 +61,8 @@ import thirdweek.madcamp.walkitalki.Model.Post;
 import thirdweek.madcamp.walkitalki.Model.User;
 import thirdweek.madcamp.walkitalki.Retrofit.APIUtils;
 import thirdweek.madcamp.walkitalki.Retrofit.IMyService;
+
+import static android.content.Context.NOTIFICATION_SERVICE;
 
 public class Fragment1 extends Fragment {
 
@@ -72,6 +84,10 @@ public class Fragment1 extends Fragment {
     private static double latitude;
     private MapView mMapView;
     private MapPOIItem mCustomMarker;
+
+
+    private final String CHANNEL_ID = "walkitalki_notifications";
+    private final int NOTIFICATION_ID = 001;
 
     public Fragment1() {
         //Required empty public constructor
@@ -119,6 +135,11 @@ public class Fragment1 extends Fragment {
             }
         };
 
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        final PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+
 
 
         //위치 정보 권한 체크 (없으면 권한 받기)
@@ -151,7 +172,7 @@ public class Fragment1 extends Fragment {
 
 
         //이미 있는 쳇들 찍기
-        IMyService iMyService;
+        final IMyService iMyService;
         iMyService = APIUtils.getUserService();
         Call call = iMyService.getChats();
         call.enqueue(new Callback<List<Chat>>() {
@@ -183,6 +204,7 @@ public class Fragment1 extends Fragment {
         });
 
 
+        //이미 있는 포스트들 찍기
         Call call2 = iMyService.getPosts();
         call2.enqueue(new Callback<List<Post>>() {
             @Override
@@ -215,6 +237,7 @@ public class Fragment1 extends Fragment {
         });
 
 
+
         //실시간 메시지 맵에 찍기
         socket.on("map new message", new Emitter.Listener() {
             @Override
@@ -240,7 +263,16 @@ public class Fragment1 extends Fragment {
 
                             myUtil.popOthersMsg(mapView, tmpChat, msgLatitude, msgLongitude);
 
+                            createNotificationChannel();
+                            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getContext(), CHANNEL_ID)
+                                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                    .setContentTitle("WalkiTalki")
+                                    .setContentText("새로운 메세지가 있습니다")
+                                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                    .setContentIntent(pendingIntent);
 
+                            NotificationManagerCompat notificationCompat = NotificationManagerCompat.from(getContext());
+                            notificationCompat.notify(NOTIFICATION_ID, mBuilder.build());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -250,7 +282,7 @@ public class Fragment1 extends Fragment {
         });
 
 
-        //
+        //실시간 포스트 찍기
         socket.on("map new post", new Emitter.Listener() {
             @Override
             public void call(final Object... args) {
@@ -309,9 +341,6 @@ public class Fragment1 extends Fragment {
 
 
 
-
-
-
         //메시지 서버에 보내기 (실시간으로 다시 디바이스로 전송 + 데이터 베이스에 저장됨)
         sendBtn.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -332,6 +361,89 @@ public class Fragment1 extends Fragment {
                 startActivity(intent);
             }
         });
+
+
+        //20초 뒤에 모든 핀(메세지 + 포스트)들 지우기
+        TimerTask checkMap = new TimerTask() {
+            @Override
+            public void run() {
+                if (mapView != null ) {
+                    TimerTask tt = new TimerTask() {
+                        @Override
+                        public void run() {
+                            mapView.removeAllPOIItems();
+
+                            //데이터에있는 메시지 다시 찍기
+                            Call call = iMyService.getChats();
+                            call.enqueue(new Callback<List<Chat>>() {
+                                @Override
+                                public void onResponse(Call<List<Chat>> call, Response<List<Chat>> response) {
+                                    if(response.body() != null) {
+                                        List<Chat> tempList =  response.body();
+                                        final MyUtil myUtil = new MyUtil(getContext());
+                                        for (int i = 0 ; i<tempList.size(); i++){
+
+                                            Chat tmpChat = new Chat();
+                                            tmpChat.username = tempList.get(i).username;
+                                            tmpChat.content = tempList.get(i).content;
+                                            tmpChat.latitude = tempList.get(i).latitude;
+                                            tmpChat.longitude = tempList.get(i).longitude;
+                                            tmpChat.userID = tempList.get(i).userID;
+                                            Log.e(" "+i+"번째 유저 정보는 ", tmpChat.username + tmpChat.content + tmpChat.latitude +  tmpChat.longitude );
+
+                                            final Chat tmpChatMSG = new Chat(tmpChat.username, tmpChat.userID, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
+
+
+                                            myUtil.popOthersMsg(mapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude );
+                                        }
+                                    }
+                                }
+                                @Override
+                                public void onFailure(Call<List<Chat>> call, Throwable t) {
+                                }
+                            });
+
+                            //데이터에있는 포스트 다시 찍기
+                            Call call2 = iMyService.getPosts();
+                            call2.enqueue(new Callback<List<Post>>() {
+                                @Override
+                                public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
+                                    if(response.body() != null) {
+                                        List<Post> tempList =  response.body();
+                                        final MyUtil myUtil = new MyUtil(getContext());
+                                        for (int i = 0 ; i<tempList.size(); i++){
+
+                                            Post tmpChat = new Post();
+                                            tmpChat.title = tempList.get(i).title;
+                                            tmpChat.username = tempList.get(i).username;
+                                            tmpChat.content = tempList.get(i).content;
+                                            tmpChat.latitude = tempList.get(i).latitude;
+                                            tmpChat.longitude = tempList.get(i).longitude;
+                                            tmpChat.userID = tempList.get(i).userID;
+                                            Log.e(" "+i+"번째 유저 정보는 ", tmpChat.username + tmpChat.content + tmpChat.latitude +  tmpChat.longitude );
+
+                                            final Post tmpChatMSG = new Post(tmpChat.username, tmpChat.userID,tmpChat.title, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
+                                            myUtil.popOthersPost(mapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude);
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call call, Throwable t) {
+
+                                }
+                            });
+                        }
+                    };
+                    Timer timer = new Timer();
+                    timer.schedule(tt, 0, 20000);
+                }
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(checkMap, 0, 20000);
+
+
 
 
         return v;
@@ -398,40 +510,20 @@ public class Fragment1 extends Fragment {
         }
     }
 
-
-//    public void popaBalloon(MapView mapView, Chat chat, double latitude, double longitude){
-//        mCustomMarker = new MapPOIItem();
-//        String name = chat.content;
-//        mCustomMarker.setItemName(name);
-//        mCustomMarker.setTag(1);
-//        mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude));
-//
-//        mCustomMarker.setMarkerType(MapPOIItem.MarkerType.CustomImage);
-//
-//        mCustomMarker.setCustomImageResourceId(R.drawable.kakaotalk_icon);
-//        mCustomMarker.setCustomImageAutoscale(false);
-//        mCustomMarker.setCustomImageAnchor(0.5f,1.0f);
-//
-//        mapView.addPOIItem(mCustomMarker);
-//        mapView.selectPOIItem(mCustomMarker,true);
-//        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude),false);
-//
-//
-//    }
-
-//    public void popOthersPost(MapView mapView, Post post, double latitude, double longitude) {
-//        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
-//        MapPOIItem marker = new MapPOIItem();
-//        Log.e("asdf", "qwerty");
-//        marker.setItemName(post.title + " : " + post.content);
-//        marker.setTag(0);
-//        marker.setMapPoint(MARKER_POINT);
-//        marker.setMarkerType(MapPOIItem.MarkerType.YellowPin);
-//        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
-//        mapView.addPOIItem(marker);
-//
-//        //move to pinned point
-//        mapView.setMapCenterPoint(MARKER_POINT, true);
-//    }
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(getActivity().NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
 
 }
