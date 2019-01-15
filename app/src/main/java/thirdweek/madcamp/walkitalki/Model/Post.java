@@ -6,6 +6,10 @@ import com.google.gson.annotations.SerializedName;
 
 public class Post {
 
+    @SerializedName("pictureUrl")
+    @Expose
+    private String pictureUrl;
+
     @SerializedName("username")
     @Expose
     public String username;
@@ -91,5 +95,13 @@ public class Post {
     }
 
     public String getTitle(){ return title;}
+
+    public String getPirctueUrl(){
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl){
+        this.pictureUrl = pictureUrl;
+    }
 
 }

@@ -2,11 +2,13 @@ package thirdweek.madcamp.walkitalki
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.PendingIntent.getActivity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -14,10 +16,12 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v4.app.ActivityCompat
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import com.github.nkzawa.socketio.client.IO
 import retrofit2.Call
 import retrofit2.Callback
@@ -31,6 +35,7 @@ import com.kakao.usermgmt.response.MeV2Response
 import com.kakao.network.ErrorResult
 import com.kakao.usermgmt.callback.MeV2ResponseCallback
 import com.kakao.usermgmt.UserManagement
+import java.io.ByteArrayOutputStream
 import java.net.Socket
 import java.net.URISyntaxException
 import java.security.AccessController.getContext
@@ -38,6 +43,7 @@ import java.security.AccessController.getContext
 
 class UploadPostActivity : AppCompatActivity() {
 
+    lateinit var image1:ImageView
     lateinit var KAKAOID:String
     lateinit var KAKAONAME:String
     lateinit var socket:Socket
@@ -46,7 +52,8 @@ class UploadPostActivity : AppCompatActivity() {
     lateinit var editContent: EditText
     lateinit var editTitle : EditText
     lateinit var btnSave: Button
-
+    lateinit var imageString:String
+    var hasPhoto = false
 
 
     fun pickImage() {
@@ -130,7 +137,8 @@ class UploadPostActivity : AppCompatActivity() {
 //                    } catch (e: IOException) {
 //                        e.printStackTrace()
 //                    }
-                    socket.emit("post detection", KAKAONAME, KAKAOID.toLong(), editTitle.text.toString(),editContent.text.toString(), latitude, longitude)
+                    Log.e("imageString is " ,imageString)
+                    socket.emit("post detection", KAKAONAME, KAKAOID.toLong(), editTitle.text.toString(), imageString, editContent.text.toString(), latitude, longitude)
 
 
 
@@ -163,5 +171,30 @@ class UploadPostActivity : AppCompatActivity() {
 
             }
         })
+    }
+
+
+    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Log.d("yelin", "on Activity Result")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
+            if (data == null) {
+                return
+            }
+            try {
+                val inputStream = this.contentResolver.openInputStream(data.data!!)
+                val image = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(inputStream), 100, 100, true)
+                image1 = findViewById(R.id.uploading_image)
+                image1.setImageBitmap(image)
+                val baos = ByteArrayOutputStream()
+                image.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+                val imageBytes = baos.toByteArray()
+                imageString = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+                hasPhoto = true
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+        }
     }
 }
