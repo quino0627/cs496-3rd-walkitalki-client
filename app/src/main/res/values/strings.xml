@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">WalkiTalki</string>
+    <string name="push_notification_title">TitleSample</string>
+    <string name="channel_name">WalkiTalki</string>
+    <string name="channel_description">Map chat</string>
 </resources>
