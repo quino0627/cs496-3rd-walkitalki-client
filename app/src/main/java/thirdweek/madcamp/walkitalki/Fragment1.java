@@ -41,6 +41,8 @@ import org.json.JSONObject;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -151,7 +153,7 @@ public class Fragment1 extends Fragment {
 
 
         //이미 있는 쳇들 찍기
-        IMyService iMyService;
+        final IMyService iMyService;
         iMyService = APIUtils.getUserService();
         Call call = iMyService.getChats();
         call.enqueue(new Callback<List<Chat>>() {
@@ -183,6 +185,7 @@ public class Fragment1 extends Fragment {
         });
 
 
+        //이미 있는 포스트들 찍기
         Call call2 = iMyService.getPosts();
         call2.enqueue(new Callback<List<Post>>() {
             @Override
@@ -250,7 +253,7 @@ public class Fragment1 extends Fragment {
         });
 
 
-        //
+        //실시간 포스트 찍기
         socket.on("map new post", new Emitter.Listener() {
             @Override
             public void call(final Object... args) {
@@ -332,6 +335,89 @@ public class Fragment1 extends Fragment {
                 startActivity(intent);
             }
         });
+
+
+        //20초 뒤에 모든 핀(메세지 + 포스트)들 지우기
+        TimerTask checkMap = new TimerTask() {
+            @Override
+            public void run() {
+                if (mapView != null ) {
+                    TimerTask tt = new TimerTask() {
+                        @Override
+                        public void run() {
+                            mapView.removeAllPOIItems();
+
+                            //데이터에있는 메시지 다시 찍기
+                            Call call = iMyService.getChats();
+                            call.enqueue(new Callback<List<Chat>>() {
+                                @Override
+                                public void onResponse(Call<List<Chat>> call, Response<List<Chat>> response) {
+                                    if(response.body() != null) {
+                                        List<Chat> tempList =  response.body();
+                                        final MyUtil myUtil = new MyUtil(getContext());
+                                        for (int i = 0 ; i<tempList.size(); i++){
+
+                                            Chat tmpChat = new Chat();
+                                            tmpChat.username = tempList.get(i).username;
+                                            tmpChat.content = tempList.get(i).content;
+                                            tmpChat.latitude = tempList.get(i).latitude;
+                                            tmpChat.longitude = tempList.get(i).longitude;
+                                            tmpChat.userID = tempList.get(i).userID;
+                                            Log.e(" "+i+"번째 유저 정보는 ", tmpChat.username + tmpChat.content + tmpChat.latitude +  tmpChat.longitude );
+
+                                            final Chat tmpChatMSG = new Chat(tmpChat.username, tmpChat.userID, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
+
+
+                                            myUtil.popOthersMsg(mapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude );
+                                        }
+                                    }
+                                }
+                                @Override
+                                public void onFailure(Call<List<Chat>> call, Throwable t) {
+                                }
+                            });
+
+                            //데이터에있는 포스트 다시 찍기
+                            Call call2 = iMyService.getPosts();
+                            call2.enqueue(new Callback<List<Post>>() {
+                                @Override
+                                public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
+                                    if(response.body() != null) {
+                                        List<Post> tempList =  response.body();
+                                        final MyUtil myUtil = new MyUtil(getContext());
+                                        for (int i = 0 ; i<tempList.size(); i++){
+
+                                            Post tmpChat = new Post();
+                                            tmpChat.title = tempList.get(i).title;
+                                            tmpChat.username = tempList.get(i).username;
+                                            tmpChat.content = tempList.get(i).content;
+                                            tmpChat.latitude = tempList.get(i).latitude;
+                                            tmpChat.longitude = tempList.get(i).longitude;
+                                            tmpChat.userID = tempList.get(i).userID;
+                                            Log.e(" "+i+"번째 유저 정보는 ", tmpChat.username + tmpChat.content + tmpChat.latitude +  tmpChat.longitude );
+
+                                            final Post tmpChatMSG = new Post(tmpChat.username, tmpChat.userID,tmpChat.title, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
+                                            myUtil.popOthersPost(mapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude);
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call call, Throwable t) {
+
+                                }
+                            });
+                        }
+                    };
+                    Timer timer = new Timer();
+                    timer.schedule(tt, 0, 20000);
+                }
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(checkMap, 0, 20000);
+
+
 
 
         return v;
