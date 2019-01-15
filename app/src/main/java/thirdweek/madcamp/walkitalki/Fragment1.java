@@ -204,6 +204,7 @@ public class Fragment1 extends Fragment {
                             Chat tmpChat = new Chat(name, userID, message, msgLatitude, msgLongitude);
 
                             popaBalloon(mapView, tmpChat, msgLatitude, msgLongitude);
+                            popaPost(mapView, tmpChat, msgLatitude, msgLongitude);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -325,6 +326,27 @@ public class Fragment1 extends Fragment {
         mCustomMarker.setCustomImageAnchor(0.5f,1.0f);
         mCustomMarker.setShowDisclosureButtonOnCalloutBalloon(false);
         mCustomMarker.setShowAnimationType(MapPOIItem.ShowAnimationType.SpringFromGround);
+
+        mapView.addPOIItem(mCustomMarker);
+        mapView.selectPOIItem(mCustomMarker,true);
+        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude),false);
+
+    }
+
+    public void popaPost(MapView mapView, Chat chat, double latitude, double longitude){
+        mCustomMarker = new MapPOIItem();
+        String name = chat.username +": "+ chat.content;
+        mCustomMarker.setItemName(name);
+        mCustomMarker.setTag(1);
+        mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude));
+
+        mCustomMarker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+
+
+        mCustomMarker.setCustomImageAutoscale(false);
+        mCustomMarker.setCustomImageAnchor(0.5f,1.0f);
+        mCustomMarker.setShowDisclosureButtonOnCalloutBalloon(false);
+
 
         mapView.addPOIItem(mCustomMarker);
         mapView.selectPOIItem(mCustomMarker,true);

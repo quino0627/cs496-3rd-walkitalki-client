@@ -36,7 +36,7 @@
             </intent-filter>
         </service>
 
-
+        
         <service android:name="com.kakao.push.KakaoFirebaseInstanceIdService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
