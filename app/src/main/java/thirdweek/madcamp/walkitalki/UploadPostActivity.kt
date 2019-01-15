@@ -110,10 +110,13 @@ class UploadPostActivity : AppCompatActivity() {
 //                    }
                     socket.emit("post detection", KAKAONAME, KAKAOID.toLong(), editTitle.text.toString(),editContent.text.toString(), latitude, longitude)
 
+
+
 //                    post.setPictureUrl(encoder(bitmap))
 //                    post.setTags(arrayOf("I WILL", "IMPLEMENT", "LATER"))
 //                    post.contents = editContent.text.toString()
 //                    addPost(post)
+                    finish()
                 }
             }
         })

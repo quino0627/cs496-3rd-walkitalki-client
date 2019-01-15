@@ -28,22 +28,22 @@ public class MyUtil {
         this.mContext = mContext;
     }
 
-    public void popMyMsg(MapView mapView, ChatVer2 chat) {
-        Location msgLocation = getLocation();
-        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(msgLocation.getLatitude(), msgLocation.getLongitude());
-        MapPOIItem marker = new MapPOIItem();
-        Log.e("asdf", "qwerty");
-        Log.e(chat.chat_sender.user_name, chat.chat_content);
-        marker.setItemName(chat.chat_sender.user_name + " : " + chat.chat_content);
-        marker.setTag(0);
-        marker.setMapPoint(MARKER_POINT);
-        marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
-        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
-        mapView.addPOIItem(marker);
-
-        //move to pinned point
-        mapView.setMapCenterPoint(MARKER_POINT, true);
-    }
+//    public void popMyMsg(MapView mapView, ChatVer2 chat) {
+//        Location msgLocation = getLocation();
+//        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(msgLocation.getLatitude(), msgLocation.getLongitude());
+//        MapPOIItem marker = new MapPOIItem();
+//        Log.e("asdf", "qwerty");
+//        Log.e(chat.chat_sender.user_name, chat.chat_content);
+//        marker.setItemName(chat.chat_sender.user_name + " : " + chat.chat_content);
+//        marker.setTag(0);
+//        marker.setMapPoint(MARKER_POINT);
+//        marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+//        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+//        mapView.addPOIItem(marker);
+//
+//        //move to pinned point
+//        mapView.setMapCenterPoint(MARKER_POINT, true);
+//    }
 
     public void popOthersMsg(MapView mapView, Chat chat, double latitude, double longitude) {
         MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
@@ -70,7 +70,7 @@ public class MyUtil {
         marker.setItemName(post.title + " : " + post.content);
         marker.setTag(0);
         marker.setMapPoint(MARKER_POINT);
-        marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+        marker.setMarkerType(MapPOIItem.MarkerType.YellowPin);
         marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
         mapView.addPOIItem(marker);
 

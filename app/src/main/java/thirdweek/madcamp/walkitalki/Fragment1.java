@@ -203,7 +203,7 @@ public class Fragment1 extends Fragment {
 
                         final Post tmpChatMSG = new Post(tmpChat.username, tmpChat.userID,tmpChat.title, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
 //                        mapView.setCalloutBalloonAdapter(new CustomCalloutBalloonAdapter());
-                        popOthersPost(mapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude);
+                        myUtil.popOthersPost(mapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude);
                     }
                 }
             }
@@ -216,7 +216,7 @@ public class Fragment1 extends Fragment {
 
 
         //실시간 메시지 맵에 찍기
-        socket.on("map new post", new Emitter.Listener() {
+        socket.on("map new message", new Emitter.Listener() {
             @Override
             public void call(final Object... args) {
                 if (getActivity() == null) {
@@ -248,6 +248,44 @@ public class Fragment1 extends Fragment {
                 });
             }
         });
+
+
+        //
+        socket.on("map new post", new Emitter.Listener() {
+            @Override
+            public void call(final Object... args) {
+                if (getActivity() == null) {
+                    return;
+                }
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.e("newPOST", "NEW POST");
+                        JSONObject data = (JSONObject) args[0];
+                        try {
+                            //실시간 데이터 정리
+                            String title = data.getString("title");
+                            String name = data.getString("username");
+                            Long userID = data.getLong("userID");
+                            String message = data.getString("message");
+                            double msgLatitude = data.getDouble("latitude");
+                            double msgLongitude = data.getDouble("longitude");
+
+                            final MyUtil myUtil = new MyUtil(getContext());
+                            Post tmpPost = new Post(name, userID,title, message, msgLatitude, msgLongitude);
+
+                            Log.e("BEFORE", "popotherspost");
+                            myUtil.popOthersPost(mapView,tmpPost , msgLatitude, msgLongitude);
+                            Log.e("AFTER", "popotherspost");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        });
+
 
 
 
@@ -381,19 +419,19 @@ public class Fragment1 extends Fragment {
 //
 //    }
 
-    public void popOthersPost(MapView mapView, Post post, double latitude, double longitude) {
-        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
-        MapPOIItem marker = new MapPOIItem();
-        Log.e("asdf", "qwerty");
-        marker.setItemName(post.title + " : " + post.content);
-        marker.setTag(0);
-        marker.setMapPoint(MARKER_POINT);
-        marker.setMarkerType(MapPOIItem.MarkerType.YellowPin);
-        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
-        mapView.addPOIItem(marker);
-
-        //move to pinned point
-        mapView.setMapCenterPoint(MARKER_POINT, true);
-    }
+//    public void popOthersPost(MapView mapView, Post post, double latitude, double longitude) {
+//        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
+//        MapPOIItem marker = new MapPOIItem();
+//        Log.e("asdf", "qwerty");
+//        marker.setItemName(post.title + " : " + post.content);
+//        marker.setTag(0);
+//        marker.setMapPoint(MARKER_POINT);
+//        marker.setMarkerType(MapPOIItem.MarkerType.YellowPin);
+//        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+//        mapView.addPOIItem(marker);
+//
+//        //move to pinned point
+//        mapView.setMapCenterPoint(MARKER_POINT, true);
+//    }
 
 }
