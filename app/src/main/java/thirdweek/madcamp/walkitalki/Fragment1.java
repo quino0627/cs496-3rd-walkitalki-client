@@ -172,8 +172,8 @@ public class Fragment1 extends Fragment {
 
                         final Chat tmpChatMSG = new Chat(tmpChat.username, tmpChat.userID, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
 
-                        mMapView.setCalloutBalloonAdapter(new CustomCalloutBalloonAdapter());
-                        popaBalloon(mMapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude );
+
+                        myUtil.popOthersMsg(mapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude );
                     }
                 }
             }
@@ -202,8 +202,8 @@ public class Fragment1 extends Fragment {
                         Log.e(" "+i+"번째 유저 정보는 ", tmpChat.username + tmpChat.content + tmpChat.latitude +  tmpChat.longitude );
 
                         final Post tmpChatMSG = new Post(tmpChat.username, tmpChat.userID,tmpChat.title, tmpChat.content, tmpChat.latitude, tmpChat.longitude);
-//                        mMapView.setCalloutBalloonAdapter(new CustomCalloutBalloonAdapter());
-                        popOthersPost(mMapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude);
+//                        mapView.setCalloutBalloonAdapter(new CustomCalloutBalloonAdapter());
+                        popOthersPost(mapView, tmpChatMSG, tmpChat.latitude, tmpChat.longitude);
                     }
                 }
             }
@@ -216,7 +216,7 @@ public class Fragment1 extends Fragment {
 
 
         //실시간 메시지 맵에 찍기
-        socket.on("map new message", new Emitter.Listener() {
+        socket.on("map new post", new Emitter.Listener() {
             @Override
             public void call(final Object... args) {
                 if (getActivity() == null) {
@@ -238,7 +238,8 @@ public class Fragment1 extends Fragment {
                             final MyUtil myUtil = new MyUtil(getContext());
                             Chat tmpChat = new Chat(name, userID, message, msgLatitude, msgLongitude);
 
-                            popaBalloon(mapView, tmpChat, msgLatitude, msgLongitude);
+                            myUtil.popOthersMsg(mapView, tmpChat, msgLatitude, msgLongitude);
+
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -360,25 +361,25 @@ public class Fragment1 extends Fragment {
     }
 
 
-    public void popaBalloon(MapView mapView, Chat chat, double latitude, double longitude){
-        mCustomMarker = new MapPOIItem();
-        String name = chat.content;
-        mCustomMarker.setItemName(name);
-        mCustomMarker.setTag(1);
-        mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude));
-
-        mCustomMarker.setMarkerType(MapPOIItem.MarkerType.CustomImage);
-
-        mCustomMarker.setCustomImageResourceId(R.drawable.kakaotalk_icon);
-        mCustomMarker.setCustomImageAutoscale(false);
-        mCustomMarker.setCustomImageAnchor(0.5f,1.0f);
-
-        mapView.addPOIItem(mCustomMarker);
-        mapView.selectPOIItem(mCustomMarker,true);
-        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude),false);
-
-
-    }
+//    public void popaBalloon(MapView mapView, Chat chat, double latitude, double longitude){
+//        mCustomMarker = new MapPOIItem();
+//        String name = chat.content;
+//        mCustomMarker.setItemName(name);
+//        mCustomMarker.setTag(1);
+//        mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude));
+//
+//        mCustomMarker.setMarkerType(MapPOIItem.MarkerType.CustomImage);
+//
+//        mCustomMarker.setCustomImageResourceId(R.drawable.kakaotalk_icon);
+//        mCustomMarker.setCustomImageAutoscale(false);
+//        mCustomMarker.setCustomImageAnchor(0.5f,1.0f);
+//
+//        mapView.addPOIItem(mCustomMarker);
+//        mapView.selectPOIItem(mCustomMarker,true);
+//        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude),false);
+//
+//
+//    }
 
     public void popOthersPost(MapView mapView, Post post, double latitude, double longitude) {
         MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
@@ -387,7 +388,7 @@ public class Fragment1 extends Fragment {
         marker.setItemName(post.title + " : " + post.content);
         marker.setTag(0);
         marker.setMapPoint(MARKER_POINT);
-        marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+        marker.setMarkerType(MapPOIItem.MarkerType.YellowPin);
         marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
         mapView.addPOIItem(marker);
 

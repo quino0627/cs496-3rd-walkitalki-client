@@ -45,12 +45,12 @@ public class MyUtil {
         mapView.setMapCenterPoint(MARKER_POINT, true);
     }
 
-    public void popOthersMsg(MapView mapView, ChatVer2 chat, double latitude, double longitude) {
+    public void popOthersMsg(MapView mapView, Chat chat, double latitude, double longitude) {
         MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
         MapPOIItem marker = new MapPOIItem();
         Log.e("asdf", "qwerty");
-        Log.e(chat.chat_sender.user_name, chat.chat_content);
-        marker.setItemName(chat.chat_sender.user_name + " : " + chat.chat_content);
+
+        marker.setItemName(chat.username + " : " + chat.content);
         marker.setTag(0);
         marker.setMapPoint(MARKER_POINT);
         marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
