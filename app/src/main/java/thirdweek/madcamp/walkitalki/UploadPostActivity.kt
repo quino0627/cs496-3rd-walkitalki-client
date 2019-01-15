@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.PendingIntent.getActivity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Location
@@ -48,6 +49,13 @@ class UploadPostActivity : AppCompatActivity() {
 
 
 
+    fun pickImage() {
+        Log.d("yelin", "pick Image")
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/*"
+        startActivityForResult(intent, 2)
+    }
+
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,7 +84,21 @@ class UploadPostActivity : AppCompatActivity() {
             override fun onProviderDisabled(provider: String) {
 
             }
+
+
+
+
         }
+
+        var camera = findViewById<Button>(R.id.camera)
+
+        camera.setOnClickListener(
+                object : View.OnClickListener {
+                    override fun onClick(v: View) {
+                        pickImage()
+                    }
+                })
+
 
         //위치 업데이트 물어보기 (0초마다, 0만큼 움직였을때)
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
