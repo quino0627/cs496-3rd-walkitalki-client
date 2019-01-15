@@ -183,7 +183,8 @@ class UploadPostActivity : AppCompatActivity() {
             }
             try {
                 val inputStream = this.contentResolver.openInputStream(data.data!!)
-                val image = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(inputStream), 100, 100, true)
+                //val image = Bitmap.createScaledBitmap(BitmapFactory.decodeStream(inputStream), 100, 100, true)
+                val image = Bitmap.createBitmap(BitmapFactory.decodeStream(inputStream))
                 image1 = findViewById(R.id.uploading_image)
                 image1.setImageBitmap(image)
                 val baos = ByteArrayOutputStream()
