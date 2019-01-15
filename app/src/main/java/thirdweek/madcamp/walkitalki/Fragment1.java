@@ -1,17 +1,23 @@
 package thirdweek.madcamp.walkitalki;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,10 +27,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
+import com.google.firebase.messaging.RemoteMessage;
 import com.kakao.network.ErrorResult;
 import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.MeV2ResponseCallback;
@@ -54,6 +62,8 @@ import thirdweek.madcamp.walkitalki.Model.User;
 import thirdweek.madcamp.walkitalki.Retrofit.APIUtils;
 import thirdweek.madcamp.walkitalki.Retrofit.IMyService;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
+
 public class Fragment1 extends Fragment {
 
     private LocationManager locationManager;
@@ -74,6 +84,10 @@ public class Fragment1 extends Fragment {
     private static double latitude;
     private MapView mMapView;
     private MapPOIItem mCustomMarker;
+
+
+    private final String CHANNEL_ID = "walkitalki_notifications";
+    private final int NOTIFICATION_ID = 001;
 
     public Fragment1() {
         //Required empty public constructor
@@ -120,6 +134,11 @@ public class Fragment1 extends Fragment {
 
             }
         };
+
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        final PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
 
 
@@ -218,6 +237,7 @@ public class Fragment1 extends Fragment {
         });
 
 
+
         //실시간 메시지 맵에 찍기
         socket.on("map new message", new Emitter.Listener() {
             @Override
@@ -243,7 +263,16 @@ public class Fragment1 extends Fragment {
 
                             myUtil.popOthersMsg(mapView, tmpChat, msgLatitude, msgLongitude);
 
+                            createNotificationChannel();
+                            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getContext(), CHANNEL_ID)
+                                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                    .setContentTitle("WalkiTalki")
+                                    .setContentText("새로운 메세지가 있습니다")
+                                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                    .setContentIntent(pendingIntent);
 
+                            NotificationManagerCompat notificationCompat = NotificationManagerCompat.from(getContext());
+                            notificationCompat.notify(NOTIFICATION_ID, mBuilder.build());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -309,9 +338,6 @@ public class Fragment1 extends Fragment {
                 mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude), true);
             }
         });
-
-
-
 
 
 
@@ -484,40 +510,20 @@ public class Fragment1 extends Fragment {
         }
     }
 
-
-//    public void popaBalloon(MapView mapView, Chat chat, double latitude, double longitude){
-//        mCustomMarker = new MapPOIItem();
-//        String name = chat.content;
-//        mCustomMarker.setItemName(name);
-//        mCustomMarker.setTag(1);
-//        mCustomMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude));
-//
-//        mCustomMarker.setMarkerType(MapPOIItem.MarkerType.CustomImage);
-//
-//        mCustomMarker.setCustomImageResourceId(R.drawable.kakaotalk_icon);
-//        mCustomMarker.setCustomImageAutoscale(false);
-//        mCustomMarker.setCustomImageAnchor(0.5f,1.0f);
-//
-//        mapView.addPOIItem(mCustomMarker);
-//        mapView.selectPOIItem(mCustomMarker,true);
-//        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude,longitude),false);
-//
-//
-//    }
-
-//    public void popOthersPost(MapView mapView, Post post, double latitude, double longitude) {
-//        MapPoint MARKER_POINT = MapPoint.mapPointWithGeoCoord(latitude, longitude);
-//        MapPOIItem marker = new MapPOIItem();
-//        Log.e("asdf", "qwerty");
-//        marker.setItemName(post.title + " : " + post.content);
-//        marker.setTag(0);
-//        marker.setMapPoint(MARKER_POINT);
-//        marker.setMarkerType(MapPOIItem.MarkerType.YellowPin);
-//        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
-//        mapView.addPOIItem(marker);
-//
-//        //move to pinned point
-//        mapView.setMapCenterPoint(MARKER_POINT, true);
-//    }
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(getActivity().NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
 
 }
